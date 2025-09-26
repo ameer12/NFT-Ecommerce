@@ -1,136 +1,63 @@
-import React, { useState, useEffect, useContext } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { sellerAuthContext, userAuthContext } from "../../Contexts";
-import { InputField, CustomButton } from "../UI";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import classes from "./Login.module.css";
 import LoginHero from "./LoginHero";
+import { CustomButton } from "../UI";
 
 const Login = () => {
   const redirect = useNavigate();
-  const { loginSeller, sellerError, clearSellerErrors, isSellerAuthenticated } =
-    useContext(sellerAuthContext);
-  const { login, error, clearErrors, isUserAuthenticated } =
-    useContext(userAuthContext);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    if (isUserAuthenticated || isSellerAuthenticated) {
-      redirect("/");
-    }
-
-    if (sellerError) {
-      // AlertContext.setAlert(error, "danger");
-      clearSellerErrors();
-    } else if (error) {
-      clearErrors();
-    }
-    //eslint-disable-next-line
-  }, [sellerError, error, isSellerAuthenticated, isUserAuthenticated]); //,props.history]
-  const [user, setUser] = useState({
-    email: "",
-    password: "",
-  });
-
-  const { email, password } = user;
-
-  const onChangeHandler = (e) => {
-    setUser({
-      ...user,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const onSubmitSellerHandler = async (e) => {
-    e.preventDefault();
-    if (email === "" || password === "") {
-      // AlertContext.setAlert("Please enter all fields", "danger"); add a state
-      // AlertContext.setAlert("Passwords do not match", "danger"); add a state
-    } else {
+  const connectWallet = async () => {
+    if (window.ethereum) {
       try {
-        await loginSeller({ email, password });
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        const address = accounts[0];
+        setWalletAddress(address);
+        console.log("Wallet connected:", address);
+
+        // يمكنك هنا إرسال العنوان إلى backend لإنشاء جلسة أو التحقق من المستخدم
         redirect("/");
       } catch (error) {
-        console.log(error);
+        console.error("Wallet connection failed:", error);
+        setErrorMessage("Wallet connection failed. Please try again.");
       }
-    }
-  };
-  const onSubmitHandler = async (e) => {
-    e.preventDefault();
-    if (email === "" || password === "") {
-      // AlertContext.setAlert("Please enter all fields", "danger"); add a state
-      // AlertContext.setAlert("Passwords do not match", "danger"); add a state
     } else {
-      try {
-        await login({ email, password });
-        redirect("/");
-      } catch (error) {
-        console.log(error);
-      }
+      setErrorMessage("MetaMask not detected. Please install MetaMask.");
     }
   };
+
   return (
-    <>
-      <div className={classes.login_section}>
-        <div className={classes.left_section}>
-          <LoginHero />
-        </div>
-        <div className={classes.right_section}>
-          <h1 className={classes.login_text}>Log in</h1>
-          <form className={classes.form} onSubmit={onSubmitHandler}>
-            <div className={classes.inputs}>
-              <InputField
-                // reference={nameRef}
-                type="email"
-                onChange={onChangeHandler}
-                value={email}
-                label="Email Address"
-                name="email"
-                placeholder="Email Address"
-                required
-              />
-              <InputField
-                // reference={nameRef}
-                type="password"
-                onChange={onChangeHandler}
-                value={password}
-                label="Password"
-                name="password"
-                placeholder="Password"
-                required
-              />
-            </div>
-            <div className={classes.btn}>
-              {!isUserAuthenticated ? (
-                <CustomButton
-                  onClick={onSubmitHandler}
-                  disabled={isUserAuthenticated}
-                  label="User Log In"
-                  filled
-                />
-              ) : null}
-              {!isSellerAuthenticated ? (
-                <CustomButton
-                  onClick={onSubmitSellerHandler}
-                  label="Seller Log In"
-                  disabled={isSellerAuthenticated}
-                  filled
-                />
-              ) : null}
-            </div>
+    <div className={classes.login_section}>
+      <div className={classes.left_section}>
+        <LoginHero />
+      </div>
+      <div className={classes.right_section}>
+        <h1 className={classes.login_text}>Connect Your Wallet</h1>
+        <div className={classes.form}>
+          <div className={classes.btn}>
+            <CustomButton
+              onClick={connectWallet}
+              label="Connect Wallet"
+              filled
+            />
+          </div>
+          {walletAddress && (
             <p className={classes.login_para}>
-              Don&apos;t have an account ?
-              <NavLink to="/signup"> Create an Account</NavLink>
+              Connected: {walletAddress}
             </p>
-            {/* <div className={classes.btn}>
-              <CustomButton
-                // onClick={handleClick}
-                label="Sign Up"
-                // filled
-              />
-            </div> */}
-          </form>
+          )}
+          {errorMessage && (
+            <p className={classes.login_para} style={{ color: "red" }}>
+              {errorMessage}
+            </p>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
