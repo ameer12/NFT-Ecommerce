@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { userAuthContext } from "../Contexts";
 
-export const SellerPrivateRoute = ({ children }) => {
+export const UserPrivateRoute = ({ children }) => {
   const { isUserAuthenticated } = useContext(userAuthContext);
   if (isUserAuthenticated) {
     return children;
@@ -10,4 +10,4 @@ export const SellerPrivateRoute = ({ children }) => {
 
   return <Navigate to="/login" />;
 };
-export default SellerPrivateRoute;
+export default UserPrivateRoute;
