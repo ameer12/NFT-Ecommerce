@@ -10,10 +10,11 @@ import { productContext } from "../../Contexts";
 
 const Explore = () => {
 	const { getAllProducts, allProducts } = useContext(productContext);
+
 	useEffect(() => {
 		getAllProducts();
 	}, []);
-	console.log(allProducts);
+
 	return (
 		<>
 			<div className={classes.cart_container}>
